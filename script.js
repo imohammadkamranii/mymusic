@@ -30,18 +30,18 @@ $(function () {
     buffInterval = null,
     tFlag = false,
     albums = [
-      "Dawn",
-      "Me & You",
-      "Electro Boy",
-      "Home",
-      "Proxy (Original Mix)"
+      "radepa",
+      "shaba",
+      " sobgzohrshab",
+      "delkhoshi",
+      "hanoo zende"
     ],
     trackNames = [
-      "Skylike - Dawn",
-      "Alex Skrindo - Me & You",
-      "Kaaze - Electro Boy",
-      "Jordan Schor - Home",
-      "Martin Garrix - Proxy"
+      "ho3ein",
+      "ho3ein",
+      "ho3ein",
+      "ho3ein",
+      "ho3ein"
     ],
     albumArtworks = ["_1", "_2", "_3", "_4", "_5"],
     trackUrl = [
