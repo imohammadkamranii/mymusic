@@ -45,7 +45,7 @@ $(function () {
     ],
     albumArtworks = ["_1", "_2", "_3", "_4", "_5"],
     trackUrl = [
-      "https://raw.githubusercontent.com/himalayasingh/music-player-1/master/music/2.mp3",
+      "https://dl.my-ahangha.ir/up/2022/Ho3ein%20-%20Be%20Mula.mp3",
       "https://raw.githubusercontent.com/himalayasingh/music-player-1/master/music/1.mp3",
       "https://raw.githubusercontent.com/himalayasingh/music-player-1/master/music/3.mp3",
       "https://raw.githubusercontent.com/himalayasingh/music-player-1/master/music/4.mp3",
