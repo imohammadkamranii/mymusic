@@ -45,11 +45,11 @@ $(function () {
     ],
     albumArtworks = ["_1", "_2", "_3", "_4", "_5"],
     trackUrl = [
-      "https://dl.my-ahangha.ir/up/2022/Ho3ein%20-%20Be%20Mula.mp3",
-      "https://raw.githubusercontent.com/himalayasingh/music-player-1/master/music/1.mp3",
-      "https://raw.githubusercontent.com/himalayasingh/music-player-1/master/music/3.mp3",
-      "https://raw.githubusercontent.com/himalayasingh/music-player-1/master/music/4.mp3",
-      "https://raw.githubusercontent.com/himalayasingh/music-player-1/master/music/5.mp3"
+      "https://dl.musicguitars.ir/Music/Ho3ein/320/Ho3ein%20-%20Rade%20Pa.mp3",
+      "https://dl.musicguitars.ir/Music/Ho3ein/320/Ho3ein%20-%20Shaba.mp3",
+      "https://dl.musicguitars.ir/Music/Ho3ein/320/Ho3ein%20-%20Sob%20Zohr%20Shab.mp3",
+      "https://dl.musicguitars.ir/Music/Ho3ein/320/Ho3ein%20Ft%20Bigrez%20-%20Delkhoshi.mp3",
+      "https://serverdl.mediahits.ir/hanoo_zende_sargarm_.mp3"
     ],
     playPreviousTrackButton = $("#play-previous"),
     playNextTrackButton = $("#play-next"),
