@@ -1,2 +1,5 @@
 pyTelegramBotAPI
 requests
+python-decouple
+requests
+pyTelegramBotAPI
