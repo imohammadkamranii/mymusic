@@ -7,10 +7,6 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import asyncio
 import logging
 import aiohttp
-from dotenv import load_dotenv  # اضافه کردن ماژول برای بارگذاری .env
-
-# بارگذاری متغیرهای محیطی از فایل .env
-load_dotenv()
 
 # تنظیم لاگینگ
 logging.basicConfig(
@@ -22,50 +18,33 @@ logger = logging.getLogger(__name__)
 class MusicBotManager:
     def __init__(self):
         self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        self.github_token = os.getenv('GITHUB_TOKEN')
-        self.github_username = os.getenv('GITHUB_USERNAME')
-        self.github_repo = os.getenv('GITHUB_REPO')
-        self.base_path = 'mymusic'  # مسیر پایه سایت
+        self.github_token = os.getenv('GITHUB_TOKEN', '')  # اختیاری
+        self.github_username = os.getenv('GITHUB_USERNAME', 'imohammadkamranii')  # پیش‌فرض
+        self.github_repo = os.getenv('GITHUB_REPO', 'mymusic')  # پیش‌فرض
+        self.base_path = 'mymusic'
         self.playlist_file = f'{self.base_path}/playlist.json'
         self.music_dir = f'{self.base_path}/music'
         
-        # دیباگ متغیرهای محیطی
-        print(f"TELEGRAM_BOT_TOKEN: {self.bot_token}")  # دیباگ برای بررسی
-        print(f"GITHUB_TOKEN: {self.github_token}")
-        print(f"GITHUB_USERNAME: {self.github_username}")
-        print(f"GITHUB_REPO: {self.github_repo}")
-        
+        # دیباگ
+        print(f"TELEGRAM_BOT_TOKEN: {self.bot_token}")
         logger.info(f"TELEGRAM_BOT_TOKEN: {'Set' if self.bot_token else 'Not Set'}")
-        logger.info(f"GITHUB_TOKEN: {'Set' if self.github_token else 'Not Set'}")
-        logger.info(f"GITHUB_USERNAME: {'Set' if self.github_username else 'Not Set'}")
-        logger.info(f"GITHUB_REPO: {'Set' if self.github_repo else 'Not Set'}")
         
-        # بررسی متغیرهای محیطی
-        for var, name in [
-            (self.bot_token, "TELEGRAM_BOT_TOKEN"),
-            (self.github_token, "GITHUB_TOKEN"),
-            (self.github_username, "GITHUB_USERNAME"),
-            (self.github_repo, "GITHUB_REPO")
-        ]:
-            if not var:
-                logger.error(f"{name} تنظیم نشده است!")
-                raise ValueError(f"{name} is required")
+        # فقط چک کردن TELEGRAM_BOT_TOKEN
+        if not self.bot_token:
+            logger.error("TELEGRAM_BOT_TOKEN تنظیم نشده است!")
+            raise ValueError("TELEGRAM_BOT_TOKEN is required")
         
         logger.info(f"Bot initialized with GitHub repo: {self.github_username}/{self.github_repo}")
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """پیام خوش‌آمدگویی"""
-        welcome_message = """
-🎵 سلام! به ربات موزیک خوش اومدی!
-
-برای اضافه کردن موزیک به پلی‌لیست:
-🎤 فایل صوتی (Voice) ارسال کن
-🎵 فایل MP3 ارسال کن
-📱 فایل Audio ارسال کن
-
-موزیک‌هات روی سایتت نمایش داده میشن! 🎶
-        """
-        await update.message.reply_text(welcome_message)
+        await update.message.reply_text(
+            "🎵 سلام! به ربات موزیک خوش اومدی!\n\n"
+            "برای اضافه کردن موزیک:\n"
+            "🎤 فایل صوتی (Voice) ارسال کن\n"
+            "🎵 فایل MP3 یا Audio ارسال کن\n\n"
+            "موزیک‌ها روی سایت نمایش داده می‌شن! 🎶"
+        )
 
     async def handle_audio(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """پردازش فایل‌های صوتی"""
@@ -84,19 +63,17 @@ class MusicBotManager:
                 file_name = audio_file.file_name or f"doc_audio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
             
             if not audio_file:
-                await update.message.reply_text("❌ لطفاً فقط فایل صوتی ارسال کنید!")
+                await update.message.reply_text("❌ فقط فایل صوتی بفرست!")
                 return
                 
-            if audio_file.file_size > 20 * 1024 * 1024:  # محدودیت 20 مگابایت
-                await update.message.reply_text("❌ فایل خیلی بزرگ است! حداکثر 20 مگابایت مجاز است.")
+            if audio_file.file_size > 20 * 1024 * 1024:
+                await update.message.reply_text("❌ فایل باید زیر 20 مگابایت باشه!")
                 return
                 
-            await update.message.reply_text("⏳ در حال پردازش فایل...")
+            await update.message.reply_text("⏳ در حال پردازش...")
             
-            # دریافت فایل از تلگرام
             file = await context.bot.get_file(audio_file.file_id)
             
-            # دانلود فایل
             async with aiohttp.ClientSession() as session:
                 async with session.get(file.file_path) as response:
                     if response.status != 200:
@@ -104,101 +81,73 @@ class MusicBotManager:
                         return
                     file_content = await response.read()
             
-            # بررسی وجود پوشه mymusic/music
-            await self.ensure_music_directory()
-            
-            # آپلود به GitHub
-            success = await self.upload_to_github(file_content, file_name)
-            
-            if success:
-                # به‌روزرسانی playlist.json
-                await self.ensure_playlist_file()
-                await self.update_playlist(file_name, update.message.from_user.first_name)
-                await update.message.reply_text(f"✅ فایل {file_name} با موفقیت اضافه شد!")
+            if self.github_token and self.github_username and self.github_repo:
+                await self.ensure_music_directory()
+                success = await self.upload_to_github(file_content, file_name)
+                if success:
+                    await self.ensure_playlist_file()
+                    await self.update_playlist(file_name, update.message.from_user.first_name)
+                    await update.message.reply_text(f"✅ فایل {file_name} اضافه شد!")
+                else:
+                    await update.message.reply_text("❌ خطا در آپلود به GitHub!")
             else:
-                await update.message.reply_text("❌ خطا در آپلود فایل به GitHub!")
+                await update.message.reply_text("⚠️ آپلود به GitHub غیرفعاله (متغیرهای GitHub تنظیم نشدن).")
                 
         except Exception as e:
-            logger.error(f"خطا در پردازش فایل صوتی: {e}")
+            logger.error(f"خطا در پردازش فایل: {e}")
             await update.message.reply_text("❌ خطا در پردازش فایل!")
 
     async def ensure_music_directory(self):
-        """بررسی و ایجاد پوشه mymusic/music در صورت عدم وجود"""
+        """ایجاد پوشه mymusic/music در GitHub"""
         try:
             url = f"https://api.github.com/repos/{self.github_username}/{self.github_repo}/contents/{self.music_dir}/.gitkeep"
-            headers = {
-                "Authorization": f"token {self.github_token}",
-                "Accept": "application/vnd.github.v3+json"
-            }
+            headers = {"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}
             
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
                     if response.status == 404:
-                        # پوشه وجود ندارد، فایل .gitkeep را آپلود می‌کنیم
-                        data = {
-                            "message": "Create mymusic/music directory with .gitkeep",
-                            "content": base64.b64encode(b"").decode('utf-8')
-                        }
+                        data = {"message": "Create music directory", "content": base64.b64encode(b"").decode('utf-8')}
                         async with session.put(url, json=data, headers=headers) as put_response:
                             if put_response.status not in [201, 200]:
-                                logger.error(f"خطا در ایجاد پوشه {self.music_dir}: {await put_response.text()}")
-                    elif response.status != 200:
-                        logger.error(f"خطا در بررسی پوشه {self.music_dir}: {await response.text()}")
+                                logger.error(f"خطا در ایجاد پوشه: {await put_response.text()}")
         except Exception as e:
-            logger.error(f"خطا در بررسی/ایجاد پوشه {self.music_dir}: {e}")
+            logger.error(f"خطا در ایجاد پوشه: {e}")
 
     async def ensure_playlist_file(self):
-        """بررسی و ایجاد فایل playlist.json در صورت عدم وجود"""
+        """ایجاد فایل playlist.json در GitHub"""
         try:
             url = f"https://api.github.com/repos/{self.github_username}/{self.github_repo}/contents/{self.playlist_file}"
-            headers = {
-                "Authorization": f"token {self.github_token}",
-                "Accept": "application/vnd.github.v3+json"
-            }
+            headers = {"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}
             
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
                     if response.status == 404:
-                        # فایل وجود ندارد، فایل اولیه ایجاد می‌کنیم
                         initial_content = {"songs": []}
-                        encoded_content = base64.b64encode(
-                            json.dumps(initial_content, indent=2, ensure_ascii=False).encode('utf-8')
-                        ).decode('utf-8')
-                        data = {
-                            "message": "Create initial playlist.json in mymusic",
-                            "content": encoded_content
-                        }
+                        encoded_content = base64.b64encode(json.dumps(initial_content, indent=2, ensure_ascii=False).encode('utf-8')).decode('utf-8')
+                        data = {"message": "Create playlist.json", "content": encoded_content}
                         async with session.put(url, json=data, headers=headers) as put_response:
                             if put_response.status not in [201, 200]:
-                                logger.error(f"خطا در ایجاد فایل {self.playlist_file}: {await put_response.text()}")
-                    elif response.status != 200:
-                        logger.error(f"خطا در بررسی فایل {self.playlist_file}: {await response.text()}")
+                                logger.error(f"خطا در ایجاد playlist.json: {await put_response.text()}")
         except Exception as e:
-            logger.error(f"خطا در بررسی/ایجاد فایل {self.playlist_file}: {e}")
+            logger.error(f"خطا در ایجاد playlist.json: {e}")
 
     async def upload_to_github(self, file_content, file_name):
         """آپلود فایل به GitHub"""
         try:
             url = f"https://api.github.com/repos/{self.github_username}/{self.github_repo}/contents/{self.music_dir}/{file_name}"
             encoded_content = base64.b64encode(file_content).decode('utf-8')
-            data = {
-                "message": f"Add music file: {file_name}",
-                "content": encoded_content
-            }
-            headers = {
-                "Authorization": f"token {self.github_token}",
-                "Accept": "application/vnd.github.v3+json"
-            }
+            data = {"message": f"Add {file_name}", "content": encoded_content}
+            headers = {"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}
             
             async with aiohttp.ClientSession() as session:
                 async with session.put(url, json=data, headers=headers) as response:
                     if response.status == 201:
                         return True
-                    elif response.status == 422:  # فایل از قبل وجود دارد
+                    elif response.status == 422:
                         await self.handle_file_conflict(file_name)
                         return False
                     else:
-                        logger.error(f"خطا در آپلود فایل به GitHub: {await response.text()}")
+                        logger.error(f"خطا در آپلود: {await response.text()}")
                         return False
         except Exception as e:
             logger.error(f"خطا در آپلود به GitHub: {e}")
@@ -214,28 +163,21 @@ class MusicBotManager:
             counter += 1
             new_file_name = f"{base}_{counter}{ext}"
         
-        logger.warning(f"فایل {file_name} تکراری است، نام جدید: {new_file_name}")
-        # TODO: می‌توانید اینجا منطق آپلود با نام جدید را اضافه کنید
+        logger.warning(f"فایل {file_name} تکراریه، نام جدید: {new_file_name}")
 
     async def file_exists_in_github(self, file_name):
         """بررسی وجود فایل در GitHub"""
         url = f"https://api.github.com/repos/{self.github_username}/{self.github_repo}/contents/{self.music_dir}/{file_name}"
-        headers = {
-            "Authorization": f"token {self.github_token}",
-            "Accept": "application/vnd.github.v3+json"
-        }
+        headers = {"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}
         async with aiohttp.ClientSession() as session:
             async with session.head(url, headers=headers) as response:
                 return response.status == 200
 
     async def get_current_playlist(self):
-        """دریافت پلی‌لیست فعلی از GitHub"""
+        """دریافت پلی‌لیست از GitHub"""
         try:
             url = f"https://api.github.com/repos/{self.github_username}/{self.github_repo}/contents/{self.playlist_file}"
-            headers = {
-                "Authorization": f"token {self.github_token}",
-                "Accept": "application/vnd.github.v3+json"
-            }
+            headers = {"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}
             
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
@@ -268,21 +210,12 @@ class MusicBotManager:
             playlist_data["songs"].append(new_song)
             
             url = f"https://api.github.com/repos/{self.github_username}/{self.github_repo}/contents/{self.playlist_file}"
-            encoded_content = base64.b64encode(
-                json.dumps(playlist_data, indent=2, ensure_ascii=False).encode('utf-8')
-            ).decode('utf-8')
-            
-            data = {
-                "message": f"Update playlist: Add {file_name}",
-                "content": encoded_content
-            }
+            encoded_content = base64.b64encode(json.dumps(playlist_data, indent=2, ensure_ascii=False).encode('utf-8')).decode('utf-8')
+            data = {"message": f"Add {file_name} to playlist", "content": encoded_content}
             if sha:
                 data["sha"] = sha
             
-            headers = {
-                "Authorization": f"token {self.github_token}",
-                "Accept": "application/vnd.github.v3+json"
-            }
+            headers = {"Authorization": f"token {self.github_token}", "Accept": "application/vnd.github.v3+json"}
             
             async with aiohttp.ClientSession() as session:
                 async with session.put(url, json=data, headers=headers) as response:
@@ -294,6 +227,10 @@ class MusicBotManager:
     async def list_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """نمایش لیست آهنگ‌ها"""
         try:
+            if not self.github_token or not self.github_username or not self.github_repo:
+                await update.message.reply_text("⚠️ لیست آهنگ‌ها غیرفعاله (متغیرهای GitHub تنظیم نشدن).")
+                return
+                
             playlist_data, _ = await self.get_current_playlist()
             songs = playlist_data.get("songs", [])
             
@@ -303,8 +240,7 @@ class MusicBotManager:
             
             message = "🎵 لیست آهنگ‌ها:\n\n"
             for i, song in enumerate(songs[-10:], 1):
-                message += f"{i}. {song['title']}\n"
-                message += f"   👤 {song['uploader']}\n\n"
+                message += f"{i}. {song['title']}\n👤 {song['uploader']}\n\n"
             
             await update.message.reply_text(message)
         except Exception as e:
@@ -318,8 +254,7 @@ def main():
     
     application.add_handler(CommandHandler("start", bot_manager.start_command))
     application.add_handler(CommandHandler("list", bot_manager.list_command))
-    application.add_handler(MessageHandler(filters.VOICE | filters.AUDIO | 
-                                        filters.Document.AUDIO, bot_manager.handle_audio))
+    application.add_handler(MessageHandler(filters.VOICE | filters.AUDIO | filters.Document.AUDIO, bot_manager.handle_audio))
     
     print("🤖 ربات شروع شد...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
