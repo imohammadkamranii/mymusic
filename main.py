@@ -8,7 +8,7 @@ import time
 # ============================
 
 # توکن ربات
-BOT_TOKEN = os.getenv("7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM")  # متغیر محیطی برای توکن ربات
+BOT_TOKEN = "7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM"  # تعریف مستقیم توکن
 
 # ایجاد شیء ربات
 bot = TeleBot(BOT_TOKEN, parse_mode=None)
