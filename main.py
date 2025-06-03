@@ -20,7 +20,7 @@ class MusicBotManager:
         self.bot_token = os.getenv('7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM')
         self.github_token = os.getenv('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')
         self.github_username = os.getenv('imohammadkamranii')
-        self.github_repo = os.getenv('imohammadkamranii.github.io')
+        self.github_repo = os.getenv('imohammadkamranii.github.io/mymusic')
         self.playlist_file = 'playlist.json'
         self.music_dir = 'music'
         
