@@ -8,9 +8,9 @@ from github import Github
 # ============================
 
 # دریافت توکن‌ها از متغیرهای محیطی
-BOT_TOKEN = os.getenv("7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM")  # توکن ربات تلگرام
-GITHUB_TOKEN = os.getenv("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")  # توکن گیت‌هاب
-REPO_NAME = os.getenv("imohammadkamranii/mymusic")  # نام مخزن گیت‌هاب
+BOT_TOKEN = "7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM" # توکن ربات تلگرام
+GITHUB_TOKEN = "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"  # توکن گیت‌هاب
+REPO_NAME = "imohammadkamranii/mymusic" # نام مخزن گیت‌هاب
 JSON_FILE_PATH = "playlist.json"  # مسیر فایل JSON در مخزن
 
 # ایجاد شیء ربات تلگرام و گیت‌هاب
