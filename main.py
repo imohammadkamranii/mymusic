@@ -10,12 +10,12 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-logger = logging.getLogger(name)  # اصلاح به name
+logger = logging.getLogger(name)
 
 class MusicBotManager:
     def init(self):
         self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        self.webhook_url = 'https://mymusic-u0ry.onrender.com/webhook'  # آدرس Webhook
+        self.webhook_url = 'https://mymusic-virid.vercel.app/webhook'  # آدرس Webhook جدید
         
         # دیباگ
         print(f"TELEGRAM_BOT_TOKEN: {self.bot_token}")
@@ -64,8 +64,8 @@ async def main():
         await runner.setup()
         site = aiohttp.web.TCPSite(runner, '0.0.0.0', int(os.getenv('PORT', 8080)))
         await site.start()
-        print(f"🤖 سرور روی پورت {os.getenv('PORT', 8080)} اجرا شد...")
-        await asyncio.Event().wait()  # نگه داشتن سرور
+        print(f"🤖 سرور روی پورت {os.getenv('PORT', 8080)} اجرا شده...")
+        await asyncio.Event().wait()
 
 if name == 'main':
     asyncio.run(main())
