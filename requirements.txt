@@ -1,5 +1,1 @@
-pyTelegramBotAPI
-requests
-python-decouple
-requests
-pyTelegramBotAPI
+pyTelegramBotAPI==4.12.0
