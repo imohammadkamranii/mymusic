@@ -15,7 +15,7 @@ logger = logging.getLogger(name)
 class MusicBotManager:
     def init(self):
         self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        self.webhook_url = 'https://mymusic-virid.vercel.app/webhook'  # آدرس Webhook جدید
+        self.webhook_url = 'https://mymusic-cazorw0xz-imohammadkamraniis-projects.vercel.app/webhook'  # آدرس Webhook جدید
         
         # دیباگ
         print(f"TELEGRAM_BOT_TOKEN: {self.bot_token}")
