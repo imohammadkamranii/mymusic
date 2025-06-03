@@ -1,52 +1,51 @@
 import os
 import json
 from telebot import TeleBot
-import time
+from github import Github
 
 # ============================
 # تنظیمات اولیه
 # ============================
 
-# توکن ربات
-BOT_TOKEN = "7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM"
+# دریافت توکن‌ها از متغیرهای محیطی
+BOT_TOKEN = os.getenv("7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM")  # توکن ربات تلگرام
+GITHUB_TOKEN = os.getenv("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")  # توکن گیت‌هاب
+REPO_NAME = os.getenv("imohammadkamranii/mymusic")  # نام مخزن گیت‌هاب
+JSON_FILE_PATH = "playlist.json"  # مسیر فایل JSON در مخزن
 
-# ایجاد شیء ربات
-bot = TeleBot(BOT_TOKEN, parse_mode=None)
-
-# مسیر فایل JSON
-JSON_FILE = "playlist.json"
-
-# ذخیره وضعیت فعلی کاربران
-user_states = {}
+# ایجاد شیء ربات تلگرام و گیت‌هاب
+bot = TeleBot(BOT_TOKEN)
+github = Github(GITHUB_TOKEN)
+repo = github.get_repo(REPO_NAME)
 
 # ============================
 # توابع کمکی
 # ============================
 
-def load_playlist():
-    """
-    فایل playlist.json را بارگذاری می‌کند.
-    اگر فایل وجود نداشته باشد، یک لیست خالی برمی‌گرداند.
-    """
+def load_playlist_from_github():
+    """لیست آهنگ‌ها را از فایل JSON در گیت‌هاب بارگذاری می‌کند."""
     try:
-        with open(JSON_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
+        file_content = repo.get_contents(JSON_FILE_PATH).decoded_content.decode("utf-8")
+        return json.loads(file_content)
+    except Exception:
         return []
 
-def save_playlist(playlist):
-    """
-    لیست آهنگ‌ها را در فایل JSON ذخیره می‌کند.
-    """
-    with open(JSON_FILE, "w", encoding="utf-8") as f:
-        json.dump(playlist, f, indent=4, ensure_ascii=False)
-
-def reset_user_state(user_id):
-    """
-    وضعیت کاربر را ریست می‌کند.
-    """
-    if user_id in user_states:
-        del user_states[user_id]
+def save_playlist_to_github(playlist):
+    """لیست آهنگ‌ها را در فایل JSON در گیت‌هاب ذخیره می‌کند."""
+    try:
+        file_content = repo.get_contents(JSON_FILE_PATH)
+        repo.update_file(
+            file_content.path,
+            "Update playlist.json",
+            json.dumps(playlist, ensure_ascii=False, indent=4),
+            file_content.sha,
+        )
+    except Exception:
+        repo.create_file(
+            JSON_FILE_PATH,
+            "Create playlist.json",
+            json.dumps(playlist, ensure_ascii=False, indent=4),
+        )
 
 # ============================
 # هندلرهای ربات
@@ -54,69 +53,49 @@ def reset_user_state(user_id):
 
 @bot.message_handler(commands=["start", "help"])
 def send_welcome(message):
-    """
-    پیام خوش‌آمدگویی به کاربر.
-    """
+    """ارسال پیام خوش‌آمدگویی به کاربر."""
     welcome_message = (
         "سلام! 👋\n"
-        "برای افزودن آهنگ جدید، دستور /add را وارد کنید.\n"
+        "برای افزودن یک آهنگ، به ترتیب پیام‌های زیر را بفرستید:\n"
+        "1️⃣ نام آهنگ\n"
+        "2️⃣ نام خواننده\n"
+        "3️⃣ لینک آهنگ\n"
+        "هر مرحله را جداگانه ارسال کنید."
     )
     bot.reply_to(message, welcome_message)
 
-@bot.message_handler(commands=["add"])
-def add_song_start(message):
-    """
-    شروع فرایند افزودن آهنگ.
-    """
-    user_id = message.chat.id
-    user_states[user_id] = {"step": 1, "data": {}}
-    bot.reply_to(message, "لطفاً نام آهنگ را وارد کنید:")
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    """دریافت و پردازش پیام‌های کاربر."""
+    chat_id = message.chat.id
+    user_step = bot.get_chat_data(chat_id).get("step", 0)
+    user_data = bot.get_chat_data(chat_id).get("data", {})
 
-@bot.message_handler(func=lambda message: message.chat.id in user_states)
-def handle_user_input(message):
-    """
-    پردازش ورودی کاربر در هر مرحله.
-    """
-    user_id = message.chat.id
-    state = user_states[user_id]
-
-    if state["step"] == 1:
-        # ذخیره نام آهنگ و درخواست نام خواننده
-        state["data"]["name"] = message.text.strip()
-        state["step"] = 2
-        bot.reply_to(message, "لطفاً نام خواننده را وارد کنید:")
-    elif state["step"] == 2:
-        # ذخیره نام خواننده و درخواست لینک آهنگ
-        state["data"]["artist"] = message.text.strip()
-        state["step"] = 3
-        bot.reply_to(message, "لطفاً لینک آهنگ را وارد کنید:")
-    elif state["step"] == 3:
-        # ذخیره لینک آهنگ و تکمیل فرایند
-        state["data"]["url"] = message.text.strip()
-        song_data = state["data"]
-        
-        # ذخیره اطلاعات در JSON
-        playlist = load_playlist()
-        playlist.append(song_data)
-        save_playlist(playlist)
-        
-        # پاسخ موفقیت
-        bot.reply_to(
-            message,
-            f"آهنگ «{song_data['name']}» از «{song_data['artist']}» با لینک:\n{song_data['url']}\nبا موفقیت ذخیره شد ✅"
-        )
-        # ریست وضعیت کاربر
-        reset_user_state(user_id)
+    if user_step == 0:
+        bot.reply_to(message, "لطفاً نام آهنگ را وارد کنید:")
+        bot.set_chat_data(chat_id, {"step": 1, "data": {}})
+    elif user_step == 1:
+        user_data["name"] = message.text.strip()
+        bot.reply_to(message, "نام خواننده را وارد کنید:")
+        bot.set_chat_data(chat_id, {"step": 2, "data": user_data})
+    elif user_step == 2:
+        user_data["artist"] = message.text.strip()
+        bot.reply_to(message, "لینک آهنگ را وارد کنید:")
+        bot.set_chat_data(chat_id, {"step": 3, "data": user_data})
+    elif user_step == 3:
+        user_data["url"] = message.text.strip()
+        playlist = load_playlist_from_github()
+        playlist.append(user_data)
+        save_playlist_to_github(playlist)
+        bot.reply_to(message, "آهنگ با موفقیت ذخیره شد! ✅")
+        bot.set_chat_data(chat_id, {"step": 0, "data": {}})
+    else:
+        bot.reply_to(message, "لطفاً دوباره تلاش کنید.")
+        bot.set_chat_data(chat_id, {"step": 0, "data": {}})
 
 # ============================
 # اجرای ربات
 # ============================
 
 if __name__ == "__main__":
-    print("🔄 ربات در حال اجراست...")
-    while True:
-        try:
-            bot.infinity_polling(timeout=10, long_polling_timeout=5)
-        except Exception as e:
-            print(f"⚠️ خطا رخ داد: {e}")
-            time.sleep(5)
+    bot.infinity_polling()
