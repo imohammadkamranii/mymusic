@@ -32,7 +32,6 @@ jobs:
       - name: Run Telegram Bot
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
+         
         run: |
           python main.py
