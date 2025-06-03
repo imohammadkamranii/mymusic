@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class MusicBotManager:
     def __init__(self):
         self.bot_token = os.getenv('7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM')
-        self.github_token = os.getenv('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')
+        self.github_token = os.getenv('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')
         self.github_username = os.getenv('imohammadkamranii')  # مثل imohammadkamrani
         self.github_repo = os.getenv('imohammadkamranii.github.io')  # مثل imohammadkamrani.github.io
         self.playlist_file = 'playlist.json'
