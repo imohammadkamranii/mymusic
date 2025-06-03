@@ -7,6 +7,10 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import asyncio
 import logging
 import aiohttp
+from dotenv import load_dotenv  # اضافه کردن ماژول برای بارگذاری .env
+
+# بارگذاری متغیرهای محیطی از فایل .env
+load_dotenv()
 
 # تنظیم لاگینگ
 logging.basicConfig(
@@ -17,15 +21,20 @@ logger = logging.getLogger(__name__)
 
 class MusicBotManager:
     def __init__(self):
-        self.bot_token = os.getenv('7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM')
-        self.github_token = os.getenv('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')
-        self.github_username = os.getenv('imohammadkamranii')
-        self.github_repo = os.getenv('imohammadkamrani.github.io')
+        self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+        self.github_token = os.getenv('GITHUB_TOKEN')
+        self.github_username = os.getenv('GITHUB_USERNAME')
+        self.github_repo = os.getenv('GITHUB_REPO')
         self.base_path = 'mymusic'  # مسیر پایه سایت
         self.playlist_file = f'{self.base_path}/playlist.json'
         self.music_dir = f'{self.base_path}/music'
         
         # دیباگ متغیرهای محیطی
+        print(f"TELEGRAM_BOT_TOKEN: {self.bot_token}")  # دیباگ برای بررسی
+        print(f"GITHUB_TOKEN: {self.github_token}")
+        print(f"GITHUB_USERNAME: {self.github_username}")
+        print(f"GITHUB_REPO: {self.github_repo}")
+        
         logger.info(f"TELEGRAM_BOT_TOKEN: {'Set' if self.bot_token else 'Not Set'}")
         logger.info(f"GITHUB_TOKEN: {'Set' if self.github_token else 'Not Set'}")
         logger.info(f"GITHUB_USERNAME: {'Set' if self.github_username else 'Not Set'}")
