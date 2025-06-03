@@ -1,13 +1,14 @@
 import json
 import re
-import os
 from telebot import TeleBot
 
 # ============================
 # ۱) تنظیمات اولیه
 # ============================
-BOT_TOKEN = os.getenv("7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM")  # مقدار واقعی در Render تعریف می‌شود
-JSON_PATH = "playlist.json"  # فایل JSON برای ذخیره آهنگ‌ها
+BOT_TOKEN = "7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM"  # توکن مستقیم
+JSON_PATH = "playlist.json"
+
+# ایجاد شیء ربات
 bot = TeleBot(BOT_TOKEN, parse_mode=None)
 
 
@@ -45,7 +46,6 @@ def send_welcome(message):
 @bot.message_handler(func=lambda msg: True, content_types=["text"])
 def handle_text_message(message):
     text = message.text.strip()
-
     try:
         pattern = r"^(.+)\s+(https?://\S+)$"
         m = re.match(pattern, text)
@@ -67,7 +67,12 @@ def handle_text_message(message):
             raise ValueError("نام آهنگ یا نام خواننده نمی‌تواند خالی باشد.")
 
         playlist = load_playlist()
-        new_song = {"name": name_part, "artist": artist_part, "url": url_part}
+
+        new_song = {
+            "name": name_part,
+            "artist": artist_part,
+            "url": url_part
+        }
 
         playlist.append(new_song)
         save_playlist(playlist)
