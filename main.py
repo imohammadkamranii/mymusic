@@ -3,13 +3,14 @@ import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import aiohttp
+import asyncio
 
 # تنظیم لاگینگ
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-logger = logging.getLogger(name)
+logger = logging.getLogger(name)  # اصلاح به name
 
 class MusicBotManager:
     def init(self):
@@ -23,7 +24,7 @@ class MusicBotManager:
         logger.info(f"WEBHOOK_URL: {self.webhook_url}")
         
         if not self.bot_token:
-            logger.error("TELEGRAM_BOT_TOKEN تنظیم نشده است!")
+            logger.error("TELEGRAM_BOT_TOKEN is required!")
             raise ValueError("TELEGRAM_BOT_TOKEN is required")
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -52,7 +53,12 @@ async def main():
     
     # راه‌اندازی سرور برای Webhook
     app = aiohttp.web.Application()
-    app.router.add_post('/webhook', lambda request: application.process_update(request))
+    async def webhook_handler(request):
+        update = Update.de_json(await request.json(), application.bot)
+        await application.process_update(update)
+        return aiohttp.web.Response()
+    
+    app.router.add_post('/webhook', webhook_handler)
     
     async with aiohttp.web.AppRunner(app) as runner:
         await runner.setup()
