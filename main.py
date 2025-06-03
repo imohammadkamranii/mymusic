@@ -20,8 +20,29 @@ class MusicBotManager:
         self.bot_token = os.getenv('7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM')
         self.github_token = os.getenv('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')
         self.github_username = os.getenv('imohammadkamranii')  # مثل imohammadkamrani
-        self.github_repo = os.getenv('mymusic')  # مثل imohammadkamrani.github.io
+        self.github_repo = os.getenv('imohammadkamranii.github.io')  # مثل imohammadkamrani.github.io
         self.playlist_file = 'playlist.json'
+        
+        # بررسی متغیرهای محیطی
+        if not self.bot_token:
+            logger.error("TELEGRAM_BOT_TOKEN تنظیم نشده است!")
+            raise ValueError("TELEGRAM_BOT_TOKEN is required")
+        
+        if not self.github_token:
+            logger.error("GITHUB_TOKEN تنظیم نشده است!")
+            raise ValueError("GITHUB_TOKEN is required")
+            
+        if not self.github_username:
+            logger.error("GITHUB_USERNAME تنظیم نشده است!")
+            raise ValueError("GITHUB_USERNAME is required")
+            
+        if not self.github_repo:
+            logger.error("GITHUB_REPO تنظیم نشده است!")
+            raise ValueError("GITHUB_REPO is required")
+            
+        logger.info(f"Bot Token Length: {len(self.bot_token)}")
+        logger.info(f"GitHub Username: {self.github_username}")
+        logger.info(f"GitHub Repo: {self.github_repo}")
         
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """پیام خوش‌آمدگویی"""
