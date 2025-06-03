@@ -18,11 +18,18 @@ logger = logging.getLogger(__name__)
 class MusicBotManager:
     def __init__(self):
         self.bot_token = os.getenv('7693573912:AAH5GlCeMvYolHuq8BckIEKgbDogcg6sldM')
-        self.github_token = os.getenv('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')
+        self.github_token = os.getenv('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')
         self.github_username = os.getenv('imohammadkamranii')
-        self.github_repo = os.getenv('imohammadkamranii.github.io/mymusic')
-        self.playlist_file = 'playlist.json'
-        self.music_dir = 'music'
+        self.github_repo = os.getenv('imohammadkamrani.github.io')
+        self.base_path = 'mymusic'  # مسیر پایه سایت
+        self.playlist_file = f'{self.base_path}/playlist.json'
+        self.music_dir = f'{self.base_path}/music'
+        
+        # دیباگ متغیرهای محیطی
+        logger.info(f"TELEGRAM_BOT_TOKEN: {'Set' if self.bot_token else 'Not Set'}")
+        logger.info(f"GITHUB_TOKEN: {'Set' if self.github_token else 'Not Set'}")
+        logger.info(f"GITHUB_USERNAME: {'Set' if self.github_username else 'Not Set'}")
+        logger.info(f"GITHUB_REPO: {'Set' if self.github_repo else 'Not Set'}")
         
         # بررسی متغیرهای محیطی
         for var, name in [
@@ -88,7 +95,7 @@ class MusicBotManager:
                         return
                     file_content = await response.read()
             
-            # بررسی وجود پوشه music
+            # بررسی وجود پوشه mymusic/music
             await self.ensure_music_directory()
             
             # آپلود به GitHub
@@ -107,7 +114,7 @@ class MusicBotManager:
             await update.message.reply_text("❌ خطا در پردازش فایل!")
 
     async def ensure_music_directory(self):
-        """بررسی و ایجاد پوشه music در صورت عدم وجود"""
+        """بررسی و ایجاد پوشه mymusic/music در صورت عدم وجود"""
         try:
             url = f"https://api.github.com/repos/{self.github_username}/{self.github_repo}/contents/{self.music_dir}/.gitkeep"
             headers = {
@@ -120,16 +127,16 @@ class MusicBotManager:
                     if response.status == 404:
                         # پوشه وجود ندارد، فایل .gitkeep را آپلود می‌کنیم
                         data = {
-                            "message": "Create music directory with .gitkeep",
+                            "message": "Create mymusic/music directory with .gitkeep",
                             "content": base64.b64encode(b"").decode('utf-8')
                         }
                         async with session.put(url, json=data, headers=headers) as put_response:
                             if put_response.status not in [201, 200]:
-                                logger.error(f"خطا در ایجاد پوشه music: {await put_response.text()}")
+                                logger.error(f"خطا در ایجاد پوشه {self.music_dir}: {await put_response.text()}")
                     elif response.status != 200:
-                        logger.error(f"خطا در بررسی پوشه music: {await response.text()}")
+                        logger.error(f"خطا در بررسی پوشه {self.music_dir}: {await response.text()}")
         except Exception as e:
-            logger.error(f"خطا در بررسی/ایجاد پوشه music: {e}")
+            logger.error(f"خطا در بررسی/ایجاد پوشه {self.music_dir}: {e}")
 
     async def ensure_playlist_file(self):
         """بررسی و ایجاد فایل playlist.json در صورت عدم وجود"""
@@ -149,16 +156,16 @@ class MusicBotManager:
                             json.dumps(initial_content, indent=2, ensure_ascii=False).encode('utf-8')
                         ).decode('utf-8')
                         data = {
-                            "message": "Create initial playlist.json",
+                            "message": "Create initial playlist.json in mymusic",
                             "content": encoded_content
                         }
                         async with session.put(url, json=data, headers=headers) as put_response:
                             if put_response.status not in [201, 200]:
-                                logger.error(f"خطا در ایجاد فایل playlist.json: {await put_response.text()}")
+                                logger.error(f"خطا در ایجاد فایل {self.playlist_file}: {await put_response.text()}")
                     elif response.status != 200:
-                        logger.error(f"خطا در بررسی فایل playlist.json: {await put_response.text()}")
+                        logger.error(f"خطا در بررسی فایل {self.playlist_file}: {await response.text()}")
         except Exception as e:
-            logger.error(f"خطا در بررسی/ایجاد فایل playlist.json: {e}")
+            logger.error(f"خطا در بررسی/ایجاد فایل {self.playlist_file}: {e}")
 
     async def upload_to_github(self, file_content, file_name):
         """آپلود فایل به GitHub"""
@@ -198,9 +205,8 @@ class MusicBotManager:
             counter += 1
             new_file_name = f"{base}_{counter}{ext}"
         
-        # دوباره تلاش برای آپلود
-        # (می‌توانید منطق آپلود را اینجا تکرار کنید یا به کاربر اطلاع دهید)
         logger.warning(f"فایل {file_name} تکراری است، نام جدید: {new_file_name}")
+        # TODO: می‌توانید اینجا منطق آپلود با نام جدید را اضافه کنید
 
     async def file_exists_in_github(self, file_name):
         """بررسی وجود فایل در GitHub"""
