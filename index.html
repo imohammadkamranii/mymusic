@@ -1,442 +1,123 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پلیر موزیک من</title>
+    <title>Music Player</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: linear-gradient(to bottom, #1e3a8a, #3b82f6);
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        .player-container {
+            max-width: 400px;
+            margin: auto;
             padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
-        
-        .header p {
-            color: #666;
-            font-size: 1.1em;
-        }
-        
-        .player-section {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            color: white;
-            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
-        
-        .current-song {
-            font-size: 1.3em;
-            margin-bottom: 15px;
-            font-weight: bold;
+        .progress-bar {
+            background: #9ca3af;
+            border-radius: 5px;
+            height: 10px;
+            overflow: hidden;
         }
-        
-        .audio-player {
-            width: 100%;
-            margin: 15px 0;
-            outline: none;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        .playlist {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .playlist-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px 15px 0 0;
-            text-align: center;
-            font-size: 1.3em;
-            font-weight: bold;
-        }
-        
-        .song-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .song-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .song-item:hover {
-            background: linear-gradient(135deg, #f093fb10, #f5576c10);
-        }
-        
-        .song-item.active {
-            background: linear-gradient(135deg, #f093fb20, #f5576c20);
-            border-right: 4px solid #f5576c;
-        }
-        
-        .song-info {
-            flex-grow: 1;
-        }
-        
-        .song-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .song-meta {
-            color: #666;
-            font-size: 0.9em;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #666;
-            font-size: 1.1em;
-        }
-        
-        .error {
-            text-align: center;
-            padding: 50px;
-            color: #e74c3c;
-            font-size: 1.1em;
-        }
-        
-        .empty-playlist {
-            text-align: center;
-            padding: 50px;
-            color: #666;
-        }
-        
-        .empty-playlist h3 {
-            margin-bottom: 10px;
-            color: #999;
-        }
-        
-        .refresh-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            font-size: 1.2em;
-            transition: all 0.3s ease;
-        }
-        
-        .refresh-btn:hover {
-            transform: scale(1.1) rotate(180deg);
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                padding: 20px 15px;
-            }
-            
-            .header h1 {
-                font-size: 2em;
-            }
-            
-            .controls {
-                flex-wrap: wrap;
-            }
-            
-            .btn {
-                padding: 8px 16px;
-                font-size: 0.9em;
-            }
+        .progress {
+            height: 100%;
+            background: #3b82f6;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎵 پلیر موزیک من</h1>
-            <p>لیست آهنگ‌های ارسالی از تلگرام</p>
+    <div class="player-container text-center">
+        <h1 class="text-2xl font-bold mb-4">Music Player</h1>
+        <audio id="audioPlayer" src="your-audio-file.mp3"></audio>
+        <p id="currentSong" class="text-lg mb-4">No song playing</p>
+        <div class="flex justify-center items-center gap-4 mb-4">
+            <button id="prevBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">⏮ Prev</button>
+            <button id="playPauseBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">▶ Play</button>
+            <button id="nextBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">⏭ Next</button>
         </div>
-        
-        <div class="player-section">
-            <div class="current-song" id="currentSong">هیچ آهنگی انتخاب نشده</div>
-            <audio id="audioPlayer" class="audio-player" controls>
-                مرورگر شما از پخش صوت پشتیبانی نمی‌کند.
-            </audio>
-            <div class="controls">
-                <button class="btn" onclick="previousSong()">⏮️ قبلی</button>
-                <button class="btn" onclick="togglePlayPause()" id="playPauseBtn">▶️ پخش</button>
-                <button class="btn" onclick="nextSong()">⏭️ بعدی</button>
-                <button class="btn" onclick="toggleShuffle()" id="shuffleBtn">🔀 تصادفی</button>
-            </div>
+        <div class="progress-bar w-full mb-4">
+            <div id="progress" class="progress" style="width: 0%;"></div>
         </div>
-        
-        <div class="playlist">
-            <div class="playlist-header">
-                📂 لیست پخش (<span id="songCount">0</span> آهنگ)
-            </div>
-            <div class="song-list" id="songList">
-                <div class="loading">⏳ در حال بارگذاری...</div>
-            </div>
-        </div>
+        <input type="file" id="fileInput" class="hidden" accept="audio/*" multiple>
+        <button id="uploadBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">Upload Songs</button>
     </div>
-    
-    <button class="refresh-btn" onclick="loadPlaylist()" title="بروزرسانی">🔄</button>
 
     <script>
-        let playlist = [];
-        let currentSongIndex = -1;
-        let isShuffleMode = false;
-        let audioPlayer = document.getElementById('audioPlayer');
-        let playHistory = [];
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const progress = document.getElementById('progress');
+        const currentSong = document.getElementById('currentSong');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
 
-        // بارگذاری پلی‌لیست از GitHub
-        async function loadPlaylist() {
-            try {
-                const response = await fetch('./playlist.json?t=' + new Date().getTime());
-                
-                if (!response.ok) {
-                    throw new Error('فایل پلی‌لیست یافت نشد');
-                }
-                
-                const data = await response.json();
-                playlist = data.songs || [];
-                
-                displayPlaylist();
-                updateSongCount();
-                
-                // اگر آهنگی در حال پخش نباشد، اولین آهنگ را انتخاب کن
-                if (currentSongIndex === -1 && playlist.length > 0) {
-                    selectSong(0);
-                }
-                
-            } catch (error) {
-                console.error('خطا در بارگذاری پلی‌لیست:', error);
-                document.getElementById('songList').innerHTML = 
-                    '<div class="error">❌ خطا در بارگذاری پلی‌لیست<br>لطفاً اتصال اینترنت خود را بررسی کنید</div>';
-            }
+        let isPlaying = false;
+        let songIndex = 0;
+        let songs = [];
+
+        function playSong() {
+            audioPlayer.play();
+            isPlaying = true;
+            playPauseBtn.textContent = '⏸ Pause';
         }
 
-        // نمایش پلی‌لیست
-        function displayPlaylist() {
-            const songListElement = document.getElementById('songList');
-            
-            if (playlist.length === 0) {
-                songListElement.innerHTML = `
-                    <div class="empty-playlist">
-                        <h3>🎵 پلی‌لیست خالی است</h3>
-                        <p>برای اضافه کردن آهنگ، فایل صوتی را به ربات تلگرام ارسال کنید</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            songListElement.innerHTML = '';
-            
-            playlist.forEach((song, index) => {
-                const songItem = document.createElement('div');
-                songItem.className = 'song-item';
-                songItem.onclick = () => selectSong(index);
-                
-                // تاریخ آپلود را فرمت کن
-                let uploadDate = 'نامشخص';
-                if (song.upload_date) {
-                    try {
-                        uploadDate = new Date(song.upload_date).toLocaleDateString('fa-IR');
-                    } catch (e) {
-                        uploadDate = 'نامشخص';
-                    }
-                }
-                
-                songItem.innerHTML = `
-                    <div class="song-info">
-                        <div class="song-title">${song.title}</div>
-                        <div class="song-meta">
-                            👤 ${song.uploader || 'نامشخص'} • 📅 ${uploadDate}
-                        </div>
-                    </div>
-                    <div class="song-index">${index + 1}</div>
-                `;
-                
-                songListElement.appendChild(songItem);
-            });
+        function pauseSong() {
+            audioPlayer.pause();
+            isPlaying = false;
+            playPauseBtn.textContent = '▶ Play';
         }
 
-        // انتخاب آهنگ
-        function selectSong(index) {
-            if (index < 0 || index >= playlist.length) return;
-            
-            // حذف کلاس active از آهنگ قبلی
-            const prevActive = document.querySelector('.song-item.active');
-            if (prevActive) {
-                prevActive.classList.remove('active');
+        playPauseBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                pauseSong();
+            } else {
+                playSong();
             }
-            
-            // اضافه کردن کلاس active به آهنگ جدید
-            const songItems = document.querySelectorAll('.song-item');
-            if (songItems[index]) {
-                songItems[index].classList.add('active');
-            }
-            
-            currentSongIndex = index;
-            const song = playlist[index];
-            
-            // تنظیم منبع صوتی
-            audioPlayer.src = song.url;
-            document.getElementById('currentSong').textContent = song.title;
-            
-            // اضافه کردن به تاریخچه پخش
-            if (!playHistory.includes(index)) {
-                playHistory.push(index);
-            }
-            
-            // پخش خودکار
-            audioPlayer.play().catch(error => {
-                console.log('خطا در پخش خودکار:', error);
-            });
-        }
+        });
 
-        // آهنگ بعدی
+        audioPlayer.addEventListener('timeupdate', () => {
+            const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            nextSong();
+        });
+
         function nextSong() {
-            if (playlist.length === 0) return;
-            
-            let nextIndex;
-            
-            if (isShuffleMode) {
-                // در حالت تصادفی
-                const availableSongs = playlist.map((_, index) => index)
-                    .filter(index => !playHistory.includes(index));
-                
-                if (availableSongs.length === 0) {
-                    // اگر همه آهنگ‌ها پخش شدند، تاریخچه را ریست کن
-                    playHistory = [];
-                    availableSongs.push(...playlist.map((_, index) => index));
-                }
-                
-                nextIndex = availableSongs[Math.floor(Math.random() * availableSongs.length)];
-            } else {
-                // حالت معمولی
-                nextIndex = (currentSongIndex + 1) % playlist.length;
+            songIndex = (songIndex + 1) % songs.length;
+            loadSong(songs[songIndex]);
+            playSong();
+        }
+
+        function prevSong() {
+            songIndex = (songIndex - 1 + songs.length) % songs.length;
+            loadSong(songs[songIndex]);
+            playSong();
+        }
+
+        function loadSong(song) {
+            audioPlayer.src = song;
+            currentSong.textContent = `Playing: ${song.split('/').pop()}`;
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', nextSong);
+        document.getElementById('prevBtn').addEventListener('click', prevSong);
+
+        uploadBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            songs = Array.from(e.target.files).map(file => URL.createObjectURL(file));
+            if (songs.length > 0) {
+                songIndex = 0;
+                loadSong(songs[songIndex]);
             }
-            
-            selectSong(nextIndex);
-        }
-
-        // آهنگ قبلی
-        function previousSong() {
-            if (playlist.length === 0) return;
-            
-            const prevIndex = currentSongIndex > 0 ? currentSongIndex - 1 : playlist.length - 1;
-            selectSong(prevIndex);
-        }
-
-        // تغییر وضعیت پخش/توقف
-        function togglePlayPause() {
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-            } else {
-                audioPlayer.pause();
-            }
-        }
-
-        // تغییر حالت تصادفی
-        function toggleShuffle() {
-            isShuffleMode = !isShuffleMode;
-            const shuffleBtn = document.getElementById('shuffleBtn');
-            
-            if (isShuffleMode) {
-                shuffleBtn.style.background = 'rgba(255, 255, 255, 0.4)';
-                shuffleBtn.innerHTML = '🔀 تصادفی: فعال';
-                playHistory = []; // ریست تاریخچه
-            } else {
-                shuffleBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-                shuffleBtn.innerHTML = '🔀 تصادفی';
-            }
-        }
-
-        // به‌روزرسانی شمارنده آهنگ‌ها
-        function updateSongCount() {
-            document.getElementById('songCount').textContent = playlist.length;
-        }
-
-        // Event Listeners
-        audioPlayer.addEventListener('ended', nextSong);
-        
-        audioPlayer.addEventListener('play', () => {
-            document.getElementById('playPauseBtn').innerHTML = '⏸️ توقف';
         });
-        
-        audioPlayer.addEventListener('pause', () => {
-            document.getElementById('playPauseBtn').innerHTML = '▶️ پخش';
-        });
-
-        audioPlayer.addEventListener('error', (e) => {
-            console.error('خطا در پخش فایل صوتی:', e);
-            document.getElementById('currentSong').textContent = 'خطا در پخش فایل';
-        });
-
-        // بارگذاری اولیه
-        window.addEventListener('load', loadPlaylist);
-        
-        // بروزرسانی خودکار هر 30 ثانیه
-        setInterval(loadPlaylist, 30000);
     </script>
 </body>
 </html>
